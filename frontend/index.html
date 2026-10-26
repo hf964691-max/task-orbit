@@ -55,14 +55,41 @@
             </div>
 
             <form class="add-form" id="add-form">
-                <label class="visually-hidden" for="new-task">Add a task</label>
-                <span class="add-icon" aria-hidden="true">+</span>
-                <input id="new-task" name="task" type="text" maxlength="180" placeholder="What needs your attention?" autocomplete="off" required>
-                <button class="add-button" type="submit">
-                    <span>Add task</span>
-                    <span aria-hidden="true">↗</span>
-                </button>
+                <div class="add-main">
+                    <label class="visually-hidden" for="new-task">Add a task</label>
+                    <span class="add-icon" aria-hidden="true">+</span>
+                    <input id="new-task" name="task" type="text" maxlength="180" placeholder="What needs your attention?" autocomplete="off" required>
+                    <button class="add-button" type="submit">
+                        <span>Add task</span>
+                        <span aria-hidden="true">↗</span>
+                    </button>
+                </div>
+                <div class="add-options">
+                    <label class="task-option date-option" for="new-task-due">
+                        <span aria-hidden="true">◷</span>
+                        <span class="visually-hidden">Due date</span>
+                        <input id="new-task-due" name="dueDate" type="date" aria-label="Due date">
+                    </label>
+                    <label class="task-option priority-option" for="new-task-priority">
+                        <span aria-hidden="true">⚑</span>
+                        <span class="visually-hidden">Priority</span>
+                        <select id="new-task-priority" name="priority" aria-label="Priority">
+                            <option value="">No priority</option>
+                            <option value="high">High priority</option>
+                            <option value="medium">Medium priority</option>
+                            <option value="low">Low priority</option>
+                        </select>
+                    </label>
+                </div>
             </form>
+
+            <div class="search-row">
+                <label class="search-box" for="task-search">
+                    <span class="search-icon" aria-hidden="true">⌕</span>
+                    <input id="task-search" type="search" placeholder="Search tasks..." autocomplete="off">
+                    <button class="search-clear" id="clear-search" type="button" aria-label="Clear search" hidden>×</button>
+                </label>
+            </div>
 
             <div class="list-toolbar">
                 <div class="filters" role="group" aria-label="Filter tasks">
@@ -70,7 +97,7 @@
                     <button class="filter-button" type="button" data-filter="active" aria-pressed="false">In progress <span id="active-count">0</span></button>
                     <button class="filter-button" type="button" data-filter="completed" aria-pressed="false">Completed <span id="completed-count">0</span></button>
                 </div>
-                <p class="progress-label" id="progress-label">A fresh start</p>
+                <p class="progress-label" id="progress-label" aria-live="polite">A fresh start</p>
             </div>
 
             <div class="progress-track" aria-hidden="true">

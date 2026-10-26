@@ -3,6 +3,8 @@ const STORAGE_KEY = "task-orbit-tasks";
 const taskList = document.querySelector("#task-list");
 const addForm = document.querySelector("#add-form");
 const newTaskInput = document.querySelector("#new-task");
+const taskSearch = document.querySelector("#task-search");
+const clearSearchButton = document.querySelector("#clear-search");
 const emptyState = document.querySelector("#empty-state");
 const notice = document.querySelector("#notice");
 const savedIndicator = document.querySelector("#saved-indicator");
@@ -14,6 +16,8 @@ const filters = document.querySelector(".filters");
 let tasks = [];
 let activeFilter = "all";
 let editingTaskId = null;
+let searchQuery = "";
+const priorities = ["high", "medium", "low"];
 
 function showNotice(message) {
     notice.textContent = message;
@@ -46,13 +50,38 @@ function loadTasks() {
             showNotice("Some saved tasks could not be loaded because their data was invalid.");
         }
 
-        return validTasks;
+        return validTasks.map((task) => ({
+            ...task,
+            dueDate: isValidDate(task.dueDate) ? task.dueDate : "",
+            priority: priorities.includes(task.priority) ? task.priority : ""
+        }));
     } catch (error) {
         console.error("Unable to load saved tasks:", error);
         showNotice("Saved tasks could not be loaded. You can still use the app, but check your browser storage.");
         setStorageStatus(false);
         return [];
     }
+}
+
+function isValidDate(value) {
+    if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+    const [year, month, day] = value.split("-").map(Number);
+    const date = new Date(year, month - 1, day);
+    return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day;
+}
+
+function formatDueDate(value) {
+    const [year, month, day] = value.split("-").map(Number);
+    return new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric", year: "numeric" })
+        .format(new Date(year, month - 1, day));
+}
+
+function todayAsDateString() {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, "0");
+    const day = String(today.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
 }
 
 function saveTasks() {
@@ -83,6 +112,34 @@ function makeButton(label, className, text) {
     return button;
 }
 
+function makeOptionField(label, name, value, options = null) {
+    const wrapper = document.createElement("label");
+    wrapper.className = `task-option ${name === "dueDate" ? "date-option" : "priority-option"}`;
+
+    const icon = document.createElement("span");
+    icon.setAttribute("aria-hidden", "true");
+    icon.textContent = name === "dueDate" ? "◷" : "⚑";
+
+    const control = options ? document.createElement("select") : document.createElement("input");
+    control.name = name;
+    control.setAttribute("aria-label", label);
+    control.value = value || "";
+
+    if (options) {
+        options.forEach(({ value: optionValue, label: optionLabel }) => {
+            const option = document.createElement("option");
+            option.value = optionValue;
+            option.textContent = optionLabel;
+            control.append(option);
+        });
+    } else {
+        control.type = "date";
+    }
+
+    wrapper.append(icon, control);
+    return wrapper;
+}
+
 function renderTask(task) {
     const item = document.createElement("li");
     item.className = `task-item${task.completed ? " is-complete" : ""}`;
@@ -92,6 +149,8 @@ function renderTask(task) {
         const editForm = document.createElement("form");
         editForm.className = "edit-form";
 
+        const editMain = document.createElement("div");
+        editMain.className = "edit-main";
         const input = document.createElement("input");
         input.type = "text";
         input.name = "title";
@@ -107,7 +166,19 @@ function renderTask(task) {
         const cancelButton = makeButton("Cancel editing", "icon-button", "×");
         cancelButton.dataset.action = "cancel";
 
-        editForm.append(input, saveButton, cancelButton);
+        editMain.append(input, saveButton, cancelButton);
+        const editOptions = document.createElement("div");
+        editOptions.className = "edit-options";
+        editOptions.append(
+            makeOptionField("Due date", "dueDate", task.dueDate),
+            makeOptionField("Priority", "priority", task.priority, [
+                { value: "", label: "No priority" },
+                { value: "high", label: "High priority" },
+                { value: "medium", label: "Medium priority" },
+                { value: "low", label: "Low priority" }
+            ])
+        );
+        editForm.append(editMain, editOptions);
         item.append(editForm);
         requestAnimationFrame(() => {
             input.focus();
@@ -137,6 +208,23 @@ function renderTask(task) {
     title.textContent = task.title;
     copy.append(title);
 
+    const metadata = document.createElement("div");
+    metadata.className = "task-meta";
+    if (task.priority && priorities.includes(task.priority)) {
+        const priorityBadge = document.createElement("span");
+        priorityBadge.className = `task-badge priority-${task.priority}`;
+        priorityBadge.textContent = `${task.priority[0].toUpperCase()}${task.priority.slice(1)} priority`;
+        metadata.append(priorityBadge);
+    }
+    if (isValidDate(task.dueDate)) {
+        const dueBadge = document.createElement("span");
+        const isOverdue = !task.completed && task.dueDate < todayAsDateString();
+        dueBadge.className = `task-badge${isOverdue ? " is-overdue" : ""}`;
+        dueBadge.textContent = `${isOverdue ? "Overdue · " : "Due "}${formatDueDate(task.dueDate)}`;
+        metadata.append(dueBadge);
+    }
+    if (metadata.childElementCount) copy.append(metadata);
+
     const actions = document.createElement("div");
     actions.className = "task-actions";
     const editButton = makeButton(`Edit ${task.title}`, "icon-button", "✎");
@@ -152,10 +240,21 @@ function renderTask(task) {
 function render() {
     const completedCount = tasks.filter((task) => task.completed).length;
     const activeCount = tasks.length - completedCount;
-    const visibleTasks = tasks.filter((task) => {
+    const statusFilteredTasks = tasks.filter((task) => {
         if (activeFilter === "active") return !task.completed;
         if (activeFilter === "completed") return task.completed;
         return true;
+    });
+    const query = searchQuery.trim().toLocaleLowerCase();
+    const visibleTasks = statusFilteredTasks.filter((task) => {
+        if (!query) return true;
+        const searchableText = [
+            task.title,
+            task.priority,
+            task.dueDate,
+            isValidDate(task.dueDate) ? formatDueDate(task.dueDate) : ""
+        ].join(" ").toLocaleLowerCase();
+        return searchableText.includes(query);
     });
 
     document.querySelector("#task-count").textContent = tasks.length;
@@ -176,6 +275,7 @@ function render() {
         button.setAttribute("aria-pressed", String(isActive));
     });
 
+    clearSearchButton.hidden = !searchQuery;
     taskList.replaceChildren(...visibleTasks.map(renderTask));
     emptyState.hidden = visibleTasks.length > 0;
 
@@ -183,10 +283,15 @@ function render() {
         document.querySelector("#empty-title").textContent = "A clear orbit.";
         document.querySelector("#empty-message").textContent = "Add your first task and make today yours.";
     } else if (!visibleTasks.length) {
-        document.querySelector("#empty-title").textContent = "Nothing here just yet.";
-        document.querySelector("#empty-message").textContent = activeFilter === "active"
-            ? "All caught up — there are no tasks in progress."
-            : "Complete a task and it will find its way here.";
+        if (query) {
+            document.querySelector("#empty-title").textContent = "No matching tasks.";
+            document.querySelector("#empty-message").textContent = "Try another search or clear the search field.";
+        } else {
+            document.querySelector("#empty-title").textContent = "Nothing here just yet.";
+            document.querySelector("#empty-message").textContent = activeFilter === "active"
+                ? "All caught up — there are no tasks in progress."
+                : "Complete a task and it will find its way here.";
+        }
     }
 }
 
@@ -198,7 +303,8 @@ function updateTask(taskId, update) {
 
 addForm.addEventListener("submit", (event) => {
     event.preventDefault();
-    const title = new FormData(addForm).get("task").trim();
+    const formData = new FormData(addForm);
+    const title = formData.get("task").trim();
     if (!title) {
         showNotice("Enter a task before adding it.");
         newTaskInput.focus();
@@ -209,13 +315,15 @@ addForm.addEventListener("submit", (event) => {
         id: createTaskId(),
         title,
         completed: false,
-        createdAt: Date.now()
+        createdAt: Date.now(),
+        dueDate: formData.get("dueDate"),
+        priority: formData.get("priority")
     });
     activeFilter = "all";
     showNotice("");
     saveTasks();
     render();
-    newTaskInput.value = "";
+    addForm.reset();
     newTaskInput.focus();
 });
 
@@ -225,6 +333,19 @@ filters.addEventListener("click", (event) => {
     activeFilter = button.dataset.filter;
     editingTaskId = null;
     render();
+});
+
+taskSearch.addEventListener("input", () => {
+    searchQuery = taskSearch.value;
+    editingTaskId = null;
+    render();
+});
+
+clearSearchButton.addEventListener("click", () => {
+    taskSearch.value = "";
+    searchQuery = "";
+    render();
+    taskSearch.focus();
 });
 
 taskList.addEventListener("change", (event) => {
@@ -262,15 +383,20 @@ taskList.addEventListener("submit", (event) => {
     if (!editForm) return;
     event.preventDefault();
 
-    const title = new FormData(editForm).get("title").trim();
+    const formData = new FormData(editForm);
+    const title = formData.get("title").trim();
     if (!title) {
         showNotice("A task can't be empty.");
         editForm.elements.title.focus();
         return;
     }
-
     const item = editForm.closest("[data-task-id]");
-    tasks = tasks.map((task) => task.id === item.dataset.taskId ? { ...task, title } : task);
+    tasks = tasks.map((task) => task.id === item.dataset.taskId ? {
+        ...task,
+        title,
+        dueDate: formData.get("dueDate"),
+        priority: formData.get("priority")
+    } : task);
     editingTaskId = null;
     showNotice("");
     saveTasks();

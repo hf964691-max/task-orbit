@@ -287,13 +287,19 @@ input:focus-visible {
 }
 
 .add-form {
-    gap: 12px;
-    min-height: 56px;
-    padding: 6px 7px 6px 15px;
+    display: block;
+    padding: 6px 7px 8px 15px;
     border: 1px solid #e8e7f1;
     border-radius: 11px;
     background: #fcfcfe;
     transition: border-color .2s ease, box-shadow .2s ease;
+}
+
+.add-main {
+    display: flex;
+    min-height: 42px;
+    align-items: center;
+    gap: 12px;
 }
 
 .add-form:focus-within {
@@ -308,7 +314,7 @@ input:focus-visible {
     line-height: 1;
 }
 
-.add-form input {
+.add-main input {
     width: 100%;
     min-width: 0;
     padding: 9px 0;
@@ -319,8 +325,56 @@ input:focus-visible {
     font-size: 13px;
 }
 
-.add-form input::placeholder {
+.add-main input::placeholder {
     color: #a7a7b5;
+}
+
+.add-options,
+.edit-options {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    padding: 6px 0 0 31px;
+    border-top: 1px solid #f0eff5;
+}
+
+.task-option {
+    display: inline-flex;
+    min-height: 27px;
+    align-items: center;
+    gap: 6px;
+    color: #9998a9;
+    font-size: 11px;
+}
+
+.task-option > span:first-child {
+    color: #9b94e8;
+    font-size: 14px;
+}
+
+.task-option input,
+.task-option select {
+    max-width: 145px;
+    padding: 3px 4px;
+    border: 0;
+    border-radius: 5px;
+    outline: 0;
+    background: transparent;
+    color: #77778a;
+    cursor: pointer;
+    font: inherit;
+    font-size: 11px;
+}
+
+.task-option select {
+    max-width: 130px;
+}
+
+.task-option input:focus-visible,
+.task-option select:focus-visible {
+    outline: 2px solid rgba(117, 103, 232, .32);
+    outline-offset: 1px;
 }
 
 .add-button {
@@ -342,6 +396,72 @@ input:focus-visible {
 .add-button:hover {
     transform: translateY(-1px);
     background: var(--purple-dark);
+}
+
+.search-row {
+    margin-top: 19px;
+}
+
+.search-box {
+    display: flex;
+    min-height: 42px;
+    align-items: center;
+    gap: 10px;
+    padding: 0 12px;
+    border: 1px solid #e8e7f1;
+    border-radius: 9px;
+    background: #fcfcfe;
+    color: #9998a9;
+    transition: border-color .2s ease, box-shadow .2s ease;
+}
+
+.search-box:focus-within {
+    border-color: #bcb5f4;
+    box-shadow: 0 0 0 3px rgba(117, 103, 232, .08);
+}
+
+.search-icon {
+    font-size: 21px;
+    line-height: 1;
+}
+
+.search-box input {
+    width: 100%;
+    min-width: 0;
+    padding: 9px 0;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: var(--ink);
+    font-size: 12px;
+}
+
+.search-box input::placeholder {
+    color: #a7a7b5;
+}
+
+.search-box input::-webkit-search-cancel-button {
+    display: none;
+}
+
+.search-clear {
+    display: grid;
+    flex: 0 0 25px;
+    width: 25px;
+    height: 25px;
+    place-items: center;
+    padding: 0;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: #9292a3;
+    cursor: pointer;
+    font-size: 18px;
+}
+
+.search-clear:hover {
+    background: #f1f0ff;
+    color: var(--purple-dark);
 }
 
 .list-toolbar {
@@ -468,8 +588,12 @@ input:focus-visible {
 }
 
 .task-copy {
+    display: flex;
     flex: 1;
     min-width: 0;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
 }
 
 .task-title {
@@ -484,6 +608,49 @@ input:focus-visible {
     color: #aaaab6;
     text-decoration: line-through;
     text-decoration-color: #c4c4ce;
+}
+
+.task-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.task-badge {
+    display: inline-flex;
+    min-height: 20px;
+    align-items: center;
+    padding: 2px 7px;
+    border-radius: 5px;
+    background: #f4f4f8;
+    color: #858596;
+    font-size: 9px;
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+.task-badge.priority-high {
+    background: #fff0f0;
+    color: #c85b65;
+}
+
+.task-badge.priority-medium {
+    background: #fff6e9;
+    color: #b57c2e;
+}
+
+.task-badge.priority-low {
+    background: #edf7f2;
+    color: #4f9678;
+}
+
+.task-badge.is-overdue {
+    background: #fff0f0;
+    color: #c85b65;
+}
+
+.task-item.is-complete .task-badge {
+    opacity: .62;
 }
 
 .task-actions {
@@ -527,10 +694,18 @@ input:focus-visible {
     display: flex;
     flex: 1;
     min-width: 0;
+    flex-wrap: wrap;
     gap: 8px;
 }
 
-.edit-form input {
+.edit-main {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    gap: 8px;
+}
+
+.edit-main input {
     width: 100%;
     min-width: 0;
     padding: 8px 10px;
@@ -538,6 +713,11 @@ input:focus-visible {
     border-radius: 7px;
     color: var(--ink);
     font-size: 13px;
+}
+
+.edit-options {
+    width: 100%;
+    padding-left: 0;
 }
 
 .edit-form button {
@@ -700,11 +880,14 @@ input:focus-visible {
     }
 
     .add-form {
-        gap: 8px;
         padding-left: 11px;
     }
 
-    .add-form input {
+    .add-main {
+        gap: 8px;
+    }
+
+    .add-main input {
         font-size: 12px;
     }
 
