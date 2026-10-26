@@ -8,6 +8,7 @@ Task Orbit is a lightweight, responsive task manager built with plain HTML, CSS,
 - Mark tasks complete or return them to in progress.
 - Set an optional due date and priority (high, medium, or low) when creating or editing a task.
 - See due dates and priority at a glance; overdue dates are highlighted.
+- Search task titles, priorities, and due dates as you type.
 - Filter tasks by all, in progress, or completed.
 - Clear all completed tasks at once.
 - Automatically save tasks in the browser's local storage.
@@ -30,7 +31,7 @@ Then visit [http://localhost:8000](http://localhost:8000).
 
 ## Using the app
 
-Enter a task in the input field. Due dates and priority are optional and can be selected before adding the task. Use the checkbox to update a task's completion status, or choose its edit or delete action. The filter controls show all tasks, only tasks in progress, or only completed tasks.
+Enter a task in the input field. Due dates and priority are optional and can be selected before adding the task. Search by task title, priority, or due date, and combine search with a status filter. Use the checkbox to update a task's completion status, or choose its edit or delete action. The filter controls show all tasks, only tasks in progress, or only completed tasks.
 
 Task changes are saved automatically under the `task-orbit-tasks` key in local storage. Data stays in the current browser and origin; it is not synced between browsers or devices. Clearing browser site data also removes saved tasks.
 
