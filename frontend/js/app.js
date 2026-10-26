@@ -279,19 +279,17 @@ function render() {
     taskList.replaceChildren(...visibleTasks.map(renderTask));
     emptyState.hidden = visibleTasks.length > 0;
 
-    if (!tasks.length) {
+    if (query) {
+        document.querySelector("#empty-title").textContent = "No matching tasks.";
+        document.querySelector("#empty-message").textContent = "Try another search or clear the search field.";
+    } else if (!tasks.length) {
         document.querySelector("#empty-title").textContent = "A clear orbit.";
         document.querySelector("#empty-message").textContent = "Add your first task and make today yours.";
     } else if (!visibleTasks.length) {
-        if (query) {
-            document.querySelector("#empty-title").textContent = "No matching tasks.";
-            document.querySelector("#empty-message").textContent = "Try another search or clear the search field.";
-        } else {
-            document.querySelector("#empty-title").textContent = "Nothing here just yet.";
-            document.querySelector("#empty-message").textContent = activeFilter === "active"
-                ? "All caught up — there are no tasks in progress."
-                : "Complete a task and it will find its way here.";
-        }
+        document.querySelector("#empty-title").textContent = "Nothing here just yet.";
+        document.querySelector("#empty-message").textContent = activeFilter === "active"
+            ? "All caught up — there are no tasks in progress."
+            : "Complete a task and it will find its way here.";
     }
 }
 
